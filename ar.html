@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EKSPAN 3D Product Example</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer@4.2.0/dist/model-viewer.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(28,138,67,0.08), transparent 30%),
+        linear-gradient(180deg, #f8fbf8, #edf3ee);
+      padding: 24px 15px;
+      color: #18212b;
+    }
+
+    .wrap { max-width: 1250px; margin: 0 auto; }
+
+    .app-page[hidden] {
+      display: none !important;
+    }
+
+    .breadcrumb {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.86);
+      border: 1px solid rgba(28,138,67,0.12);
+      box-shadow: 0 10px 24px rgba(16,35,24,0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .crumb {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #647467;
+    }
+
+    .crumb::after {
+      content: "/";
+      color: rgba(24,33,43,0.28);
+    }
+
+    .crumb:last-child::after {
+      content: none;
+    }
+
+    .crumb-btn {
+      border: none;
+      background: transparent;
+      padding: 0;
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .crumb-btn:hover {
+      color: #1c8a43;
+    }
+
+    .crumb.current {
+      color: #1c8a43;
+    }
+
+    .crumb.current .crumb-btn,
+    .crumb.current span {
+      color: inherit;
+      cursor: default;
+    }
+
+    .selection-page {
+      min-height: calc(100vh - 48px);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      justify-content: center;
+    }
+
+    .page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .page-copy {
+      max-width: 760px;
+    }
+
+    .page-kicker {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #1c8a43;
+    }
+
+    .page-title {
+      margin: 0 0 10px;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+    }
+
+    .page-text {
+      margin: 0;
+      max-width: 620px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #536457;
+    }
+
+    .nav-btn {
+      padding: 11px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(28,138,67,0.16);
+      background: rgba(255,255,255,0.86);
+      color: #18212b;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(16,35,24,0.08);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.96);
+      box-shadow: 0 14px 28px rgba(16,35,24,0.12);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .option-card {
+      position: relative;
+      overflow: hidden;
+      text-align: left;
+      border: 1px solid rgba(28,138,67,0.12);
+      border-radius: 24px;
+      background: rgba(255,255,255,0.9);
+      box-shadow: 0 18px 36px rgba(16,35,24,0.09);
+      min-height: 280px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    }
+
+    .option-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 42px rgba(16,35,24,0.14);
+      border-color: rgba(28,138,67,0.28);
+    }
+
+    .option-card.disabled {
+      cursor: default;
+      opacity: 0.74;
+    }
+
+    .option-card.disabled:hover {
+      transform: none;
+      box-shadow: 0 18px 36px rgba(16,35,24,0.09);
+      border-color: rgba(28,138,67,0.12);
+    }
+
+    .option-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, transparent 12%, rgba(14,24,19,0.04) 60%, rgba(14,24,19,0.12) 100%),
+        radial-gradient(circle at top right, rgba(28,138,67,0.18), transparent 34%);
+      pointer-events: none;
+    }
+
+    .card-art {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.18) 28%, transparent 29%),
+        linear-gradient(135deg, rgba(28,138,67,0.14), rgba(28,138,67,0.03)),
+        linear-gradient(180deg, rgba(223,232,225,0.85), rgba(235,241,236,0.4));
+    }
+
+    .card-art.bearing {
+      background:
+        radial-gradient(circle at 50% 48%, rgba(255,255,255,0.96) 0 18%, rgba(28,138,67,0.22) 19% 28%, rgba(54,65,59,0.08) 29% 44%, transparent 45%),
+        linear-gradient(180deg, rgba(229,237,231,0.95), rgba(239,244,240,0.55));
+    }
+
+    .card-art.joint {
+      background:
+        linear-gradient(90deg, transparent 0 18%, rgba(28,138,67,0.24) 18% 22%, transparent 22% 42%, rgba(28,138,67,0.16) 42% 46%, transparent 46% 100%),
+        linear-gradient(180deg, rgba(229,237,231,0.95), rgba(239,244,240,0.55));
+    }
+
+    .card-art.family {
+      background:
+        radial-gradient(circle at 26% 42%, rgba(28,138,67,0.24), transparent 18%),
+        linear-gradient(135deg, rgba(28,138,67,0.16), rgba(255,255,255,0.2)),
+        linear-gradient(180deg, rgba(229,237,231,0.95), rgba(239,244,240,0.55));
+    }
+
+    .card-art.variant {
+      background:
+        linear-gradient(90deg, transparent 0 24%, rgba(28,138,67,0.3) 24% 28%, transparent 28% 72%, rgba(28,138,67,0.2) 72% 76%, transparent 76% 100%),
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.86), rgba(255,255,255,0.18) 26%, transparent 27%),
+        linear-gradient(180deg, rgba(229,237,231,0.95), rgba(239,244,240,0.55));
+    }
+
+    .card-meta {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-tag {
+      display: inline-flex;
+      align-self: flex-start;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.82);
+      border: 1px solid rgba(28,138,67,0.14);
+      color: #1c8a43;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .card-text {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #536457;
+      max-width: 32ch;
+    }
+
+    .card-note {
+      margin-top: 2px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #1c8a43;
+    }
+
+    /* ── Shell ─────────────────────────────────────────────── */
+    .viewer-shell {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 0;
+      height: min(78vh, 760px);
+      min-height: 540px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 22px 46px rgba(16,35,24,0.12);
+      border: 1px solid rgba(28,138,67,0.12);
+      transition: grid-template-columns 0.35s ease;
+    }
+
+    .viewer-shell.spec-open {
+      grid-template-columns: minmax(0,1fr) 360px;
+    }
+
+    .viewer-panel {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      background: white;
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: radial-gradient(circle at 50% 20%, rgba(255,255,255,0.96), rgba(231,240,233,0.94) 48%, rgba(214,227,217,0.92) 100%);
+      --poster-color: transparent;
+    }
+
+    /* ── Controls ──────────────────────────────────────────── */
+    .top-controls {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: 0.3s ease;
+      z-index: 7;
+      pointer-events: none;
+      max-width: calc(100% - 180px);
+    }
+
+    .bottom-left-controls {
+      position: absolute;
+      left: 15px;
+      bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: 0.3s ease;
+      z-index: 7;
+      pointer-events: none;
+    }
+
+    .bottom-right-controls {
+      position: absolute;
+      right: 15px;
+      bottom: 78px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: 0.3s ease;
+      z-index: 7;
+      pointer-events: none;
+      align-items: flex-end;
+    }
+
+    .top-controls {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .bottom-left-controls {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .bottom-right-controls {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .control-btn {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(15,26,20,0.64);
+      color: white;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      box-shadow: 0 8px 18px rgba(12,18,15,0.14);
+      transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      white-space: nowrap;
+    }
+
+    .control-btn:hover {
+      background: rgba(15,26,20,0.78);
+      transform: translateY(-1px);
+      box-shadow: 0 12px 20px rgba(12,18,15,0.18);
+    }
+    .control-btn.active { background: #1c8a43; color: white; }
+    .control-btn.alt-active { background: #1c8a43; color: white; }
+
+    .control-btn.disabled-look {
+      opacity: 0.38;
+      pointer-events: none;
+    }
+
+    .viewer-shell.animating .explode-btn,
+    .viewer-shell.animating .reset-btn {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* ── Bearing name badge (top-left) ─────────────────────── */
+    .bearing-badge {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      z-index: 7;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(28,138,67,0.12);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #18212b;
+      pointer-events: none;
+      opacity: 0;
+      box-shadow: 0 10px 24px rgba(16,35,24,0.08);
+      transition: 0.3s ease;
+    }
+
+    .bearing-badge {
+      opacity: 1;
+    }
+
+    /* ── Logo ──────────────────────────────────────────────── */
+    .viewer-logo {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      width: 110px;
+      z-index: 7;
+      padding: 6px 10px;
+      background: rgba(255,255,255,0.84);
+      backdrop-filter: blur(10px);
+      border-radius: 8px;
+      pointer-events: none;
+      box-shadow: 0 12px 22px rgba(16,35,24,0.08);
+    }
+
+    .viewer-logo img { width: 100%; display: block; }
+
+    /* ── Spec panel ─────────────────────────────────────────── */
+    .spec-panel {
+      position: relative;
+      min-height: 0;
+      background: linear-gradient(180deg, #fcfefd, #f3f8f4);
+      border-left: 1px solid rgba(28,138,67,0.12);
+      overflow: auto;
+      opacity: 0;
+      transform: translateX(20px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      pointer-events: none;
+    }
+
+    .viewer-shell.spec-open .spec-panel {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .spec-inner {
+      min-height: 100%;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .spec-header { margin-bottom: 18px; }
+
+    .spec-kicker {
+      display: inline-block;
+      margin-bottom: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #1c8a43;
+    }
+
+    .spec-header h3 { margin: 0 0 10px; font-size: 26px; line-height: 1.05; }
+
+    .spec-header p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #5d6d61;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    .spec-table tr { border-bottom: 1px solid rgba(28,138,67,0.10); }
+
+    .spec-table th,
+    .spec-table td {
+      text-align: left;
+      padding: 12px 0;
+      vertical-align: top;
+    }
+
+    .spec-table th { width: 46%; font-weight: 600; color: #18212b; }
+    .spec-table td { color: #3e4f42; }
+
+    .spec-note {
+      margin-top: auto;
+      padding-top: 18px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #5d6d61;
+    }
+
+    /* ── Dimension overlay ──────────────────────────────────── */
+    /*
+      Dimensions use model-viewer hotspots as anchors.
+      The SVG canvas sits over the whole viewer-panel and
+      we draw lines between the hotspot screen positions.
+      Labels are absolutely positioned at the midpoint of each line.
+    */
+    .annotation-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+      overflow: visible;
+    }
+
+    .dim-line {
+      stroke: #1c8a43;
+      stroke-width: 1.5;
+      stroke-dasharray: 6 4;
+      opacity: 0;
+      transition: opacity 0.14s ease;
+    }
+
+    .dim-ext {
+      stroke: rgba(28,138,67,0.75);
+      stroke-width: 1.25;
+      opacity: 0;
+      transition: opacity 0.14s ease;
+    }
+
+    .dim-tick {
+      stroke: #1c8a43;
+      stroke-width: 1.5;
+      opacity: 0;
+      transition: opacity 0.14s ease;
+    }
+
+    .viewer-shell.state-assembled.show-dimensions .dim-line,
+    .viewer-shell.state-assembled.show-dimensions .dim-ext,
+    .viewer-shell.state-assembled.show-dimensions .dim-tick {
+      opacity: 1;
+    }
+
+    /* Material annotation lines */
+    .mat-line {
+      stroke: #1c8a43;
+      stroke-width: 1.5;
+      opacity: 0;
+      transition: opacity 0.14s ease;
+    }
+
+    .viewer-shell.state-exploded.show-materials .mat-line {
+      opacity: 1;
+    }
+
+    /* Shared label pill */
+    .annotation-label {
+      position: absolute;
+      padding: 5px 9px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.14s ease;
+      transform: translate(-50%, -50%);
+      max-width: 170px;
+      text-align: center;
+    }
+
+    .dim-label {
+      background: rgba(255,255,255,0.96);
+      color: #18212b;
+      border: 1px solid rgba(28,138,67,0.35);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+
+    .viewer-shell.state-assembled.show-dimensions .dim-label {
+      opacity: 1;
+    }
+
+    .mat-label {
+      background: rgba(255,255,255,0.96);
+      color: #18212b;
+      border: 1px solid rgba(28,138,67,0.4);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+
+    .viewer-shell.state-exploded.show-materials .mat-label {
+      opacity: 1;
+    }
+
+    /* Hidden hotspot anchors */
+    .hotspot-anchor {
+      display: block;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-pill {
+      position: absolute;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      z-index: 8;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(15,26,20,0.82);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 14px 24px rgba(12,18,15,0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+
+    .loading-pill::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.28);
+      border-top-color: #ffffff;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .viewer-shell.reloading .loading-pill {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 980px) {
+      .breadcrumb {
+        border-radius: 20px;
+        align-items: flex-start;
+      }
+
+      .selection-page {
+        min-height: auto;
+        padding: 12px 0;
+      }
+
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .viewer-shell,
+      .viewer-shell.spec-open {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: 0;
+      }
+
+      .viewer-panel { min-height: 520px; }
+
+      .spec-panel {
+        border-left: none;
+        border-top: 1px solid rgba(28,138,67,0.12);
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateY(12px);
+        transition: max-height 0.4s ease, opacity 0.35s ease, transform 0.35s ease;
+      }
+
+      .viewer-shell.spec-open .spec-panel {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .top-controls { max-width: calc(100% - 30px); }
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 20px 12px; }
+      .viewer-logo { width: 90px; bottom: 10px; right: 10px; }
+      .top-controls { left: 15px; right: 15px; }
+      .bottom-left-controls { left: 12px; bottom: 16px; }
+      .bottom-right-controls { right: 12px; bottom: 72px; }
+      .annotation-label {
+        font-size: 10px;
+        padding: 5px 8px;
+        max-width: 118px;
+      }
+      .mat-label {
+        white-space: normal;
+        line-height: 1.25;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <nav class="breadcrumb" id="breadcrumb" aria-label="Progress"></nav>
+
+    <section class="app-page selection-page" id="pageCategory">
+      <div class="page-head">
+        <div class="page-copy">
+          <div class="page-kicker">EKSPAN Product Explorer</div>
+          <h1 class="page-title">Select a product group.</h1>
+          <p class="page-text">Start by choosing which part of the EKSPAN range you want to present. Placeholder imagery is used here for navigation only.</p>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <button class="option-card" type="button" data-category="bearing">
+          <div class="card-art bearing"></div>
+          <div class="card-meta">
+            <span class="card-tag">Category</span>
+            <h2 class="card-title">Bearings</h2>
+            <p class="card-text">Explore the structural bearing families and drill into presentation-ready product variants.</p>
+          </div>
+        </button>
+
+        <button class="option-card" type="button" data-category="joint">
+          <div class="card-art joint"></div>
+          <div class="card-meta">
+            <span class="card-tag">Category</span>
+            <h2 class="card-title">Joints</h2>
+            <p class="card-text">Browse the joint product group. This route is included now as a placeholder for the next stage of the presentation.</p>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <section class="app-page selection-page" id="pageFamilies" hidden>
+      <div class="page-head">
+        <div class="page-copy">
+          <div class="page-kicker" id="familiesKicker">Bearing Range</div>
+          <h1 class="page-title" id="familiesTitle">Choose a bearing family.</h1>
+          <p class="page-text" id="familiesText">Select a family to continue into the current presentation structure.</p>
+        </div>
+        <button class="nav-btn" type="button" id="backToCategory">Back</button>
+      </div>
+
+      <div class="card-grid" id="familiesGrid"></div>
+    </section>
+
+    <section class="app-page selection-page" id="pageVariants" hidden>
+      <div class="page-head">
+        <div class="page-copy">
+          <div class="page-kicker">F-Type Bearings</div>
+          <h1 class="page-title">Select a product variant.</h1>
+          <p class="page-text">The 10FE Fixed variant opens the live 3D presentation. The remaining variants are shown for structure and can be wired in later.</p>
+        </div>
+        <button class="nav-btn" type="button" id="backToFamilies">Back</button>
+      </div>
+
+      <div class="card-grid">
+        <button class="option-card" type="button" id="open10FE">
+          <div class="card-art variant"></div>
+          <div class="card-meta">
+            <span class="card-tag">F-Type</span>
+            <h2 class="card-title">10FE Fixed</h2>
+            <p class="card-text">Opens the current interactive bearing presentation with the specification panel and annotation tools.</p>
+            <div class="card-note">Available now</div>
+          </div>
+        </button>
+
+        <div class="option-card disabled" aria-disabled="true">
+          <div class="card-art variant"></div>
+          <div class="card-meta">
+            <span class="card-tag">F-Type</span>
+            <h2 class="card-title">21FE Guide</h2>
+            <p class="card-text">Included here as the next F-Type presentation step once the model and specification set are prepared.</p>
+            <div class="card-note">Placeholder</div>
+          </div>
+        </div>
+
+        <div class="option-card disabled" aria-disabled="true">
+          <div class="card-art variant"></div>
+          <div class="card-meta">
+            <span class="card-tag">F-Type</span>
+            <h2 class="card-title">31FE Guide</h2>
+            <p class="card-text">Included here as the next F-Type presentation step once the model and specification set are prepared.</p>
+            <div class="card-note">Placeholder</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="app-page" id="pageViewer" hidden>
+    <div class="viewer-shell state-assembled loaded spec-open" id="viewerShell">
+      <div class="viewer-panel" id="viewerPanel">
+
+        <model-viewer
+          id="viewer"
+          src="https://laserscanning.s3.eu-west-2.amazonaws.com/EKSPAN/10FE_AR.glb"
+          camera-controls
+          camera-orbit="40deg 72deg 145%"
+          min-camera-orbit="auto 48deg 110%"
+          max-camera-orbit="auto 88deg 220%"
+          field-of-view="24deg"
+          min-field-of-view="18deg"
+          max-field-of-view="34deg"
+          loading="eager"
+          exposure="1.4"
+          environment-image="neutral"
+          shadow-intensity="0.4"
+          interaction-prompt="auto"
+          aria-label="Interactive 3D model of the 10FE bearing.">
+
+          <!--
+            DIMENSION HOTSPOTS
+            Placed at the real-world extents of the bearing.
+            Width ≈ ±181.5mm (363mm total), Depth ≈ ±151mm (302mm), Height ≈ ±42mm (84mm)
+          -->
+          <button class="hotspot-anchor" slot="hotspot-w-left"    data-position="-0.1815m 0m 0m"    data-normal="0 1 0"></button>
+          <button class="hotspot-anchor" slot="hotspot-w-right"   data-position=" 0.1815m 0m 0m"    data-normal="0 1 0"></button>
+          <button class="hotspot-anchor" slot="hotspot-d-front"   data-position="0m 0m  0.151m"     data-normal="0 1 0"></button>
+          <button class="hotspot-anchor" slot="hotspot-d-back"    data-position="0m 0m -0.151m"     data-normal="0 1 0"></button>
+          <button class="hotspot-anchor" slot="hotspot-h-top"     data-position="0m  0.042m 0m"     data-normal="0 1 0"></button>
+          <button class="hotspot-anchor" slot="hotspot-h-bottom"  data-position="0m -0.042m 0m"     data-normal="0 1 0"></button>
+
+          <!--
+            MATERIAL HOTSPOTS
+            Named Material 1–6; placed on the exploded parts.
+          -->
+          <button class="hotspot-anchor" slot="hotspot-mat1" data-position="0m  0.155m 0.005m" data-normal="0 1 0"></button>
+          <button class="hotspot-anchor" slot="hotspot-mat2" data-position="0m  0.085m 0.005m" data-normal="0 1 0"></button>
+          <button class="hotspot-anchor" slot="hotspot-mat3" data-position="0m  0.005m 0.01m"  data-normal="0 1 0"></button>
+          <button class="hotspot-anchor" slot="hotspot-mat4" data-position="0m -0.075m 0.015m" data-normal="0 1 0"></button>
+          <button class="hotspot-anchor" slot="hotspot-mat5" data-position="-0.065m -0.03m 0.03m" data-normal="0 1 0"></button>
+          <button class="hotspot-anchor" slot="hotspot-mat6" data-position=" 0.065m -0.03m 0.03m" data-normal="0 1 0"></button>
+        </model-viewer>
+
+        <!-- SVG annotation canvas — drawn over the model viewer -->
+        <svg id="annotationSvg" class="annotation-canvas" xmlns="http://www.w3.org/2000/svg">
+          <!-- Dimension lines -->
+          <line id="lineWidth"  class="dim-line"></line>
+          <line id="lineDepth"  class="dim-line"></line>
+          <line id="lineHeight" class="dim-line"></line>
+          <line id="extWidthL" class="dim-ext"></line>
+          <line id="extWidthR" class="dim-ext"></line>
+          <line id="extDepthF" class="dim-ext"></line>
+          <line id="extDepthB" class="dim-ext"></line>
+          <line id="extHeightT" class="dim-ext"></line>
+          <line id="extHeightB" class="dim-ext"></line>
+          <!-- Dimension end-ticks (4 per axis = 12 total) -->
+          <line id="tickWL1" class="dim-tick"></line><line id="tickWL2" class="dim-tick"></line>
+          <line id="tickWR1" class="dim-tick"></line><line id="tickWR2" class="dim-tick"></line>
+          <line id="tickDF1" class="dim-tick"></line><line id="tickDF2" class="dim-tick"></line>
+          <line id="tickDB1" class="dim-tick"></line><line id="tickDB2" class="dim-tick"></line>
+          <line id="tickHT1" class="dim-tick"></line><line id="tickHT2" class="dim-tick"></line>
+          <line id="tickHB1" class="dim-tick"></line><line id="tickHB2" class="dim-tick"></line>
+          <!-- Material leader lines -->
+          <line id="lineM1" class="mat-line"></line>
+          <line id="lineM2" class="mat-line"></line>
+          <line id="lineM3" class="mat-line"></line>
+          <line id="lineM4" class="mat-line"></line>
+          <line id="lineM5" class="mat-line"></line>
+          <line id="lineM6" class="mat-line"></line>
+        </svg>
+
+        <!-- Dimension labels (positioned by JS) -->
+        <div class="annotation-label dim-label" id="lblWidth">X / Width - 363 mm</div>
+        <div class="annotation-label dim-label" id="lblDepth">Z / Depth - 302 mm</div>
+        <div class="annotation-label dim-label" id="lblHeight">Y / Height - 84 mm</div>
+
+        <!-- Material labels -->
+        <div class="annotation-label mat-label" id="lblMat1">Machined steel</div>
+        <div class="annotation-label mat-label" id="lblMat2">PTFE / sliding layer</div>
+        <div class="annotation-label mat-label" id="lblMat3">Elastomer</div>
+        <div class="annotation-label mat-label" id="lblMat4">Machined steel</div>
+        <div class="annotation-label mat-label" id="lblMat5">Zinc-plated steel</div>
+        <div class="annotation-label mat-label" id="lblMat6">Coated steel bracket</div>
+
+        <!-- Bearing name badge -->
+        <div class="bearing-badge" id="bearingBadge">10FE Bearing</div>
+
+        <div class="top-controls">
+          <button id="resetBtn"   class="control-btn reset-btn   active">Assembled</button>
+          <button id="explodeBtn" class="control-btn explode-btn"       >Exploded</button>
+        </div>
+
+        <div class="bottom-left-controls">
+          <button id="measureBtn"  class="control-btn"              aria-pressed="false">Dimensions</button>
+          <button id="materialsBtn" class="control-btn disabled-look" aria-pressed="false">Materials</button>
+        </div>
+
+        <div class="bottom-right-controls">
+          <button id="specBtn" class="control-btn alt-active" aria-pressed="true" aria-controls="specPanel">Specification</button>
+        </div>
+
+        <div class="viewer-logo">
+          <img src="https://laserscanning.s3.eu-west-2.amazonaws.com/EKSPAN/EKSPAN_LOGO.png" alt="EKSPAN logo">
+        </div>
+        <div class="loading-pill" id="loadingPill">Refreshing 3D model</div>
+      </div>
+
+      <aside class="spec-panel" id="specPanel" aria-label="Product specification">
+        <div class="spec-inner">
+          <div class="spec-header">
+            <div class="spec-kicker">Product Specification</div>
+            <h3>10FE Bearing</h3>
+            <p>Presentation configuration for reviewing the bearing geometry, key performance figures, and material arrangement alongside the interactive model.</p>
+          </div>
+          <table class="spec-table">
+            <tr><th>Product Code</th>     <td>10FE</td></tr>
+            <tr><th>Lifting Capacity</th> <td>250 kN</td></tr>
+            <tr><th>Horizontal Load</th>  <td>40 kN</td></tr>
+            <tr><th>Rotation Capacity</th><td>0.02 rad</td></tr>
+            <tr><th>Movement Range</th>   <td>±25 mm</td></tr>
+            <tr><th>Overall Width</th>    <td>363 mm</td></tr>
+            <tr><th>Overall Depth</th>    <td>302 mm</td></tr>
+            <tr><th>Overall Height</th>   <td>84 mm</td></tr>
+            <tr><th>Main Materials</th>   <td>Machined steel, PTFE, elastomer, zinc-plated fasteners, coated brackets</td></tr>
+            <tr><th>Application</th>      <td>Bridge bearing assembly</td></tr>
+          </table>
+          <div class="spec-note">
+            Presentation concept for internal and client review. Final delivery can be populated with the approved product dataset and extended across the wider bearing range.
+          </div>
+        </div>
+      </aside>
+    </div>
+    </section>
+  </div>
+
+  <script>
+    const pageCategory = document.getElementById('pageCategory');
+    const pageFamilies = document.getElementById('pageFamilies');
+    const pageVariants = document.getElementById('pageVariants');
+    const pageViewer = document.getElementById('pageViewer');
+    const breadcrumb = document.getElementById('breadcrumb');
+    const familiesGrid = document.getElementById('familiesGrid');
+    const familiesKicker = document.getElementById('familiesKicker');
+    const familiesTitle = document.getElementById('familiesTitle');
+    const familiesText = document.getElementById('familiesText');
+    const backToCategory = document.getElementById('backToCategory');
+    const backToFamilies = document.getElementById('backToFamilies');
+    const open10FE = document.getElementById('open10FE');
+
+    let selectedCategory = null;
+    let currentPageId = 'pageCategory';
+
+    const familyOptions = {
+      bearing: {
+        kicker: 'Bearing Range',
+        title: 'Choose a bearing family.',
+        text: 'Select a family to continue into the current presentation structure.',
+        items: [
+          { title: 'F-Type', text: 'Includes the fixed and guided F-Type bearings. This path currently opens the 10FE presentation.', status: 'Available', action: 'variants' },
+          { title: 'Gosport Link Bearings', text: 'Shown here as part of the bearing range structure for later expansion.', status: 'Placeholder' },
+          { title: 'Pot', text: 'Shown here as part of the bearing range structure for later expansion.', status: 'Placeholder' },
+          { title: 'Spherical', text: 'Shown here as part of the bearing range structure for later expansion.', status: 'Placeholder' }
+        ]
+      },
+      joint: {
+        kicker: 'Joint Range',
+        title: 'Choose a joint family.',
+        text: 'The joint route is included for presentation structure and can be populated with real options next.',
+        items: [
+          { title: 'Joint Option 01', text: 'Placeholder route for the joint product range.', status: 'Placeholder' },
+          { title: 'Joint Option 02', text: 'Placeholder route for the joint product range.', status: 'Placeholder' },
+          { title: 'Joint Option 03', text: 'Placeholder route for the joint product range.', status: 'Placeholder' }
+        ]
+      }
+    };
+
+    function getCategoryLabel(category) {
+      return category === 'joint' ? 'Joints' : 'Bearings';
+    }
+
+    function renderBreadcrumb(pageId) {
+      const crumbs = [{ id: 'pageCategory', label: 'Category' }];
+
+      if (selectedCategory) {
+        crumbs.push({ id: 'pageFamilies', label: getCategoryLabel(selectedCategory) });
+      }
+
+      if (selectedCategory === 'bearing') {
+        crumbs.push({ id: 'pageVariants', label: 'F-Type' });
+        if (pageId === 'pageViewer') {
+          crumbs.push({ id: 'pageViewer', label: '10FE Fixed' });
+        }
+      } else if (selectedCategory === 'joint' && pageId !== 'pageCategory') {
+        crumbs.push({ id: 'pageFamilies', label: 'Joint Options' });
+      }
+
+      breadcrumb.innerHTML = crumbs.map((crumb) => {
+        const isCurrent = crumb.id === pageId;
+        return `
+          <div class="crumb${isCurrent ? ' current' : ''}">
+            ${isCurrent ? `<span>${crumb.label}</span>` : `<button class="crumb-btn" type="button" data-crumb-target="${crumb.id}">${crumb.label}</button>`}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function showPage(pageToShow) {
+      [pageCategory, pageFamilies, pageVariants, pageViewer].forEach((page) => {
+        page.hidden = page !== pageToShow;
+      });
+      currentPageId = pageToShow.id;
+      renderBreadcrumb(currentPageId);
+      window.scrollTo(0, 0);
+    }
+
+    function renderFamilyCards(category) {
+      const config = familyOptions[category];
+      familiesKicker.textContent = config.kicker;
+      familiesTitle.textContent = config.title;
+      familiesText.textContent = config.text;
+      familiesGrid.innerHTML = config.items.map((item) => `
+        <button class="option-card${item.action ? '' : ' disabled'}" type="button" ${item.action ? `data-family-action="${item.action}"` : 'disabled'}>
+          <div class="card-art family"></div>
+          <div class="card-meta">
+            <span class="card-tag">${category === 'bearing' ? 'Bearing Family' : 'Joint Family'}</span>
+            <h2 class="card-title">${item.title}</h2>
+            <p class="card-text">${item.text}</p>
+            <div class="card-note">${item.status}</div>
+          </div>
+        </button>
+      `).join('');
+    }
+
+    renderBreadcrumb(currentPageId);
+
+    /* ── Element refs ─────────────────────────────────────── */
+    const viewer      = document.getElementById('viewer');
+    const viewerShell = document.getElementById('viewerShell');
+    const viewerPanel = document.getElementById('viewerPanel');
+    const specPanel   = document.getElementById('specPanel');
+    const svg         = document.getElementById('annotationSvg');
+    const loadingPill = document.getElementById('loadingPill');
+
+    const resetBtn    = document.getElementById('resetBtn');
+    const explodeBtn  = document.getElementById('explodeBtn');
+    const specBtn     = document.getElementById('specBtn');
+    const measureBtn  = document.getElementById('measureBtn');
+    const materialsBtn = document.getElementById('materialsBtn');
+    const modelSrc = viewer.getAttribute('src');
+
+    /* ── State ────────────────────────────────────────────── */
+    let duration    = 0;
+    let ready       = false;
+    let isExploded  = false;
+    let isAnimating = false;
+
+    function stageDefaultCamera() {
+      viewer.cameraTarget = '0m 0.015m 0m';
+      viewer.jumpCameraToGoal();
+    }
+
+    /* ── Hotspot screen-position helper ───────────────────── */
+    /*
+      model-viewer positions hotspot elements in the DOM using
+      CSS transforms that track the 3D position. We read the
+      bounding rect of the hotspot element relative to the
+      viewer panel to get screen-space (x, y).
+    */
+    function hsPos(slotName) {
+      const el = viewer.querySelector(`[slot="${slotName}"]`);
+      if (!el) return null;
+      const er = el.getBoundingClientRect();
+      const pr = viewerPanel.getBoundingClientRect();
+      // getBoundingClientRect on a 1×1 hidden element gives its centre
+      return {
+        x: er.left - pr.left + er.width  / 2,
+        y: er.top  - pr.top  + er.height / 2
+      };
+    }
+
+    /* ── Draw a line between two screen points ────────────── */
+    function drawLine(lineEl, p1, p2) {
+      if (!p1 || !p2) return;
+      lineEl.setAttribute('x1', p1.x); lineEl.setAttribute('y1', p1.y);
+      lineEl.setAttribute('x2', p2.x); lineEl.setAttribute('y2', p2.y);
+    }
+
+    function drawCoords(lineEl, x1, y1, x2, y2) {
+      lineEl.setAttribute('x1', x1); lineEl.setAttribute('y1', y1);
+      lineEl.setAttribute('x2', x2); lineEl.setAttribute('y2', y2);
+    }
+
+    /* ── Draw a small perpendicular tick at a line endpoint ── */
+    function drawTick(tick1, tick2, pt, perpX, perpY, len = 6) {
+      if (!pt) return;
+      tick1.setAttribute('x1', pt.x + perpX * len); tick1.setAttribute('y1', pt.y + perpY * len);
+      tick1.setAttribute('x2', pt.x - perpX * len); tick1.setAttribute('y2', pt.y - perpY * len);
+      // duplicate tick — we just draw both on the same element; use tick2 for safety
+      tick2.setAttribute('x1', pt.x + perpX * len); tick2.setAttribute('y1', pt.y + perpY * len);
+      tick2.setAttribute('x2', pt.x - perpX * len); tick2.setAttribute('y2', pt.y - perpY * len);
+    }
+
+    /* ── Position a label at the midpoint of two points ──── */
+    function placeLabel(lbl, p1, p2, offX, offY) {
+      if (!p1 || !p2) return;
+      const mx = (p1.x + p2.x) / 2 + offX;
+      const my = (p1.y + p2.y) / 2 + offY;
+      lbl.style.left = mx + 'px';
+      lbl.style.top  = my + 'px';
+    }
+
+    /*
+      Leader line for material labels:
+      Draw from the hotspot outward by `reach` px in a fixed diagonal,
+      then place the label at the end.
+    */
+    function placeLeader(lineEl, lbl, hotspotSlot, reachX, reachY) {
+      const p = hsPos(hotspotSlot);
+      if (!p) return;
+      const ex = p.x + reachX;
+      const ey = p.y + reachY;
+      lineEl.setAttribute('x1', p.x); lineEl.setAttribute('y1', p.y);
+      lineEl.setAttribute('x2', ex);  lineEl.setAttribute('y2', ey);
+      lbl.style.left = ex + 'px';
+      lbl.style.top  = ey + 'px';
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function finishExplodedState() {
+      viewer.pause();
+      viewer.currentTime = duration;
+      viewer.timeScale = 0;
+      isExploded = true;
+      isAnimating = false;
+      viewerShell.classList.remove('animating');
+      viewerShell.classList.remove('reloading');
+      viewerShell.classList.remove('state-assembled');
+      viewerShell.classList.add('state-exploded');
+      syncButtons();
+      redrawAnnotations();
+    }
+
+    function finishAssembledState() {
+      viewer.pause();
+      viewer.currentTime = 0;
+      viewer.timeScale = 0;
+      isExploded = false;
+      isAnimating = false;
+      viewerShell.classList.remove('animating');
+      viewerShell.classList.remove('reloading');
+      viewerShell.classList.remove('state-exploded');
+      viewerShell.classList.add('state-assembled');
+      syncButtons();
+      stageDefaultCamera();
+      redrawAnnotations();
+    }
+
+    function reloadAssembledModel() {
+      isAnimating = true;
+      ready = false;
+      viewer.pause();
+      viewer.timeScale = 0;
+      viewerShell.classList.add('animating');
+      viewerShell.classList.add('reloading');
+      viewerShell.classList.remove('show-materials');
+      viewerShell.classList.remove('show-dimensions');
+      measureBtn.classList.remove('alt-active');
+      measureBtn.setAttribute('aria-pressed', 'false');
+      materialsBtn.classList.remove('alt-active');
+      materialsBtn.setAttribute('aria-pressed', 'false');
+      viewer.setAttribute('src', `${modelSrc}?reset=${Date.now()}`);
+    }
+
+    /* ── Master redraw ────────────────────────────────────── */
+    function redrawAnnotations() {
+      /* ── Dimensions (assembled state only) ── */
+      const wL = hsPos('hotspot-w-left');
+      const wR = hsPos('hotspot-w-right');
+      const dF = hsPos('hotspot-d-front');
+      const dB = hsPos('hotspot-d-back');
+      const hT = hsPos('hotspot-h-top');
+      const hB = hsPos('hotspot-h-bottom');
+
+      const widthLine = document.getElementById('lineWidth');
+      const depthLine = document.getElementById('lineDepth');
+      const heightLine = document.getElementById('lineHeight');
+      const extWidthL = document.getElementById('extWidthL');
+      const extWidthR = document.getElementById('extWidthR');
+      const extDepthF = document.getElementById('extDepthF');
+      const extDepthB = document.getElementById('extDepthB');
+      const extHeightT = document.getElementById('extHeightT');
+      const extHeightB = document.getElementById('extHeightB');
+
+      const points = [wL, wR, dF, dB, hT, hB].filter(Boolean);
+
+      if (points.length === 6) {
+        const minX = Math.min(...points.map((p) => p.x));
+        const maxX = Math.max(...points.map((p) => p.x));
+        const minY = Math.min(...points.map((p) => p.y));
+        const maxY = Math.max(...points.map((p) => p.y));
+
+        const widthY = maxY + 54;
+        const depthY = minY - 54;
+        const heightX = maxX + 64;
+
+        drawCoords(widthLine, wL.x, widthY, wR.x, widthY);
+        drawCoords(extWidthL, wL.x, wL.y, wL.x, widthY);
+        drawCoords(extWidthR, wR.x, wR.y, wR.x, widthY);
+
+        drawCoords(depthLine, dB.x, depthY, dF.x, depthY);
+        drawCoords(extDepthF, dF.x, dF.y, dF.x, depthY);
+        drawCoords(extDepthB, dB.x, dB.y, dB.x, depthY);
+
+        drawCoords(heightLine, heightX, hT.y, heightX, hB.y);
+        drawCoords(extHeightT, hT.x, hT.y, heightX, hT.y);
+        drawCoords(extHeightB, hB.x, hB.y, heightX, hB.y);
+      }
+
+      // Ticks perpendicular to each axis line
+      if (wL && wR && points.length === 6) {
+        const widthY = Math.max(...points.map((p) => p.y)) + 54;
+        const pLeft = { x: wL.x, y: widthY };
+        const pRight = { x: wR.x, y: widthY };
+        const dy = pRight.y - pLeft.y, dx = pRight.x - pLeft.x;
+        const len = Math.hypot(dx, dy) || 1;
+        const px = -dy / len, py = dx / len; // perpendicular unit vector
+        drawTick(document.getElementById('tickWL1'), document.getElementById('tickWL2'), pLeft, px, py);
+        drawTick(document.getElementById('tickWR1'), document.getElementById('tickWR2'), pRight, px, py);
+      }
+      if (dF && dB && points.length === 6) {
+        const depthY = Math.min(...points.map((p) => p.y)) - 54;
+        const pBack = { x: dB.x, y: depthY };
+        const pFront = { x: dF.x, y: depthY };
+        const dy = pFront.y - pBack.y, dx = pFront.x - pBack.x;
+        const len = Math.hypot(dx, dy) || 1;
+        const px = -dy / len, py = dx / len;
+        drawTick(document.getElementById('tickDF1'), document.getElementById('tickDF2'), pFront, px, py);
+        drawTick(document.getElementById('tickDB1'), document.getElementById('tickDB2'), pBack, px, py);
+      }
+      if (hT && hB && points.length === 6) {
+        const heightX = Math.max(...points.map((p) => p.x)) + 64;
+        const pTop = { x: heightX, y: hT.y };
+        const pBottom = { x: heightX, y: hB.y };
+        const dy = pBottom.y - pTop.y, dx = pBottom.x - pTop.x;
+        const len = Math.hypot(dx, dy) || 1;
+        const px = -dy / len, py = dx / len;
+        drawTick(document.getElementById('tickHT1'), document.getElementById('tickHT2'), pTop, px, py);
+        drawTick(document.getElementById('tickHB1'), document.getElementById('tickHB2'), pBottom, px, py);
+      }
+
+      if (points.length === 6) {
+        const widthY = Math.max(...points.map((p) => p.y)) + 54;
+        const depthY = Math.min(...points.map((p) => p.y)) - 54;
+        const heightX = Math.max(...points.map((p) => p.x)) + 64;
+
+        placeLabel(document.getElementById('lblWidth'), { x: wL.x, y: widthY }, { x: wR.x, y: widthY }, 0, -18);
+        placeLabel(document.getElementById('lblDepth'), { x: dB.x, y: depthY }, { x: dF.x, y: depthY }, 0, -18);
+        placeLabel(document.getElementById('lblHeight'), { x: heightX, y: hT.y }, { x: heightX, y: hB.y }, 62, 0);
+      }
+
+      /* ── Material leaders (exploded state only) ──
+         Each reaches outward from the component hotspot.
+         Offsets are tuned so labels spread around the model.
+      */
+      const panelRect = viewerPanel.getBoundingClientRect();
+      const labelLeftX = 110;
+      const labelRightX = panelRect.width - 110;
+      const topBound = 48;
+      const bottomBound = panelRect.height - 48;
+
+      const materialLayouts = [
+        ['lineM1', 'lblMat1', 'hotspot-mat1', labelRightX, -82],
+        ['lineM2', 'lblMat2', 'hotspot-mat2', labelRightX, -34],
+        ['lineM3', 'lblMat3', 'hotspot-mat3', labelRightX, 18],
+        ['lineM4', 'lblMat4', 'hotspot-mat4', labelRightX, 70],
+        ['lineM5', 'lblMat5', 'hotspot-mat5', labelLeftX, -18],
+        ['lineM6', 'lblMat6', 'hotspot-mat6', labelLeftX, 34]
+      ];
+
+      materialLayouts.forEach(([lineId, labelId, slotName, labelX, offsetY]) => {
+        const point = hsPos(slotName);
+        if (!point) return;
+        const labelY = clamp(point.y + offsetY, topBound, bottomBound);
+        const lineEndX = labelX < point.x ? labelX + 54 : labelX - 54;
+        drawCoords(document.getElementById(lineId), point.x, point.y, lineEndX, labelY);
+        const label = document.getElementById(labelId);
+        label.style.left = `${labelX}px`;
+        label.style.top = `${labelY}px`;
+      });
+    }
+
+    /* ── Animation: play forward ──────────────────────────── */
+    function playExplode() {
+      isAnimating = true;
+      viewerShell.classList.add('animating');
+      viewerShell.classList.remove('show-dimensions');
+      measureBtn.classList.remove('alt-active');
+      measureBtn.setAttribute('aria-pressed', 'false');
+
+      viewer.timeScale  = 1;
+      viewer.currentTime = 0;
+
+      viewer.addEventListener('finished', finishExplodedState, { once: true });
+
+      viewer.play({ repetitions: 1 });
+    }
+
+    /* ── Animation: play reverse ──────────────────────────── */
+    function playAssemble() {
+      isAnimating = true;
+      viewerShell.classList.add('animating');
+
+      // Hide sub-panels that belong to exploded state
+      viewerShell.classList.remove('show-materials');
+      materialsBtn.classList.remove('alt-active');
+      materialsBtn.setAttribute('aria-pressed', 'false');
+
+      viewer.pause();
+      viewer.timeScale = -1;
+      viewer.currentTime = Math.max(duration - 0.001, 0);
+      viewer.addEventListener('finished', finishAssembledState, { once: true });
+      viewer.play({ repetitions: 1 });
+    }
+
+    /* ── Keep buttons in sync with state ─────────────────── */
+    function syncButtons() {
+      resetBtn.classList.toggle('active',  !isExploded);
+      explodeBtn.classList.toggle('active', isExploded);
+
+      // Measurements only available when assembled
+      if (isExploded) {
+        measureBtn.classList.add('disabled-look');
+        measureBtn.setAttribute('aria-pressed', 'false');
+        viewerShell.classList.remove('show-dimensions');
+        materialsBtn.classList.remove('disabled-look');
+      } else {
+        measureBtn.classList.remove('disabled-look');
+        materialsBtn.classList.add('disabled-look');
+        materialsBtn.setAttribute('aria-pressed', 'false');
+        viewerShell.classList.remove('show-materials');
+      }
+    }
+
+    /* ── Spec panel ──────────────────────────────────────── */
+    function openSpecPanel() {
+      viewerShell.classList.add('spec-open');
+      specBtn.classList.add('alt-active');
+      specBtn.setAttribute('aria-pressed', 'true');
+      if (window.matchMedia('(max-width: 980px)').matches) {
+        specPanel.style.maxHeight = specPanel.scrollHeight + 'px';
+      }
+    }
+
+    function closeSpecPanel() {
+      viewerShell.classList.remove('spec-open');
+      specBtn.classList.remove('alt-active');
+      specBtn.setAttribute('aria-pressed', 'false');
+      if (window.matchMedia('(max-width: 980px)').matches) {
+        specPanel.style.maxHeight = '0';
+      }
+    }
+
+    /* ── Init ────────────────────────────────────────────── */
+    async function init() {
+      await viewer.updateComplete;
+      const anims = viewer.availableAnimations || [];
+      if (anims.length > 0) {
+        viewer.animationName = anims[0];
+        await viewer.updateComplete;
+      }
+      duration = Number(viewer.duration || 0);
+      viewer.pause();
+      viewer.currentTime = 0;
+      viewer.timeScale   = 0;
+      ready      = true;
+      isExploded = false;
+      isAnimating = false;
+      viewerShell.classList.add('state-assembled');
+      viewerShell.classList.remove('state-exploded');
+      viewerShell.classList.remove('animating');
+      viewerShell.classList.remove('reloading');
+      syncButtons();
+      if (viewerShell.classList.contains('spec-open')) {
+        openSpecPanel();
+      }
+      stageDefaultCamera();
+      redrawAnnotations();
+    }
+
+    viewer.addEventListener('load', init);
+
+    // Fallback if load fires before listener
+    window.addEventListener('load', () => {
+      setTimeout(() => { if (!ready) init(); }, 1200);
+    });
+
+    /* Redraw annotations every time the camera moves */
+    viewer.addEventListener('camera-change', redrawAnnotations);
+
+    pageCategory.addEventListener('click', (event) => {
+      const card = event.target.closest('[data-category]');
+      if (!card) return;
+      selectedCategory = card.dataset.category;
+      renderFamilyCards(selectedCategory);
+      showPage(pageFamilies);
+    });
+
+    familiesGrid.addEventListener('click', (event) => {
+      const card = event.target.closest('[data-family-action]');
+      if (!card) return;
+      if (card.dataset.familyAction === 'variants') {
+        showPage(pageVariants);
+      }
+    });
+
+    backToCategory.addEventListener('click', () => {
+      showPage(pageCategory);
+    });
+
+    backToFamilies.addEventListener('click', () => {
+      showPage(pageFamilies);
+    });
+
+    open10FE.addEventListener('click', () => {
+      showPage(pageViewer);
+      if (ready) {
+        stageDefaultCamera();
+        redrawAnnotations();
+      }
+    });
+
+    breadcrumb.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-crumb-target]');
+      if (!button) return;
+
+      const target = button.dataset.crumbTarget;
+
+      if (target === 'pageCategory') {
+        showPage(pageCategory);
+        return;
+      }
+
+      if (target === 'pageFamilies') {
+        showPage(pageFamilies);
+        return;
+      }
+
+      if (target === 'pageVariants' && selectedCategory === 'bearing') {
+        showPage(pageVariants);
+        return;
+      }
+
+      if (target === 'pageViewer' && selectedCategory === 'bearing') {
+        showPage(pageViewer);
+      }
+    });
+
+    /* ── Explode ─────────────────────────────────────────── */
+    explodeBtn.addEventListener('click', () => {
+      if (!ready || isAnimating || isExploded || duration <= 0) return;
+      playExplode();
+    });
+
+    /* ── Assemble (FIX: now plays reverse animation) ─────── */
+    resetBtn.addEventListener('click', () => {
+      if (!ready || isAnimating) return;
+      if (!isExploded) return; // already assembled, nothing to do
+      reloadAssembledModel();
+    });
+
+    /* ── Spec panel ──────────────────────────────────────── */
+    specBtn.addEventListener('click', () => {
+      if (viewerShell.classList.contains('spec-open')) {
+        closeSpecPanel();
+      } else {
+        openSpecPanel();
+      }
+    });
+
+    /* ── Measurements (assembled only) ──────────────────── */
+    measureBtn.addEventListener('click', () => {
+      if (isExploded) return;
+      const on = viewerShell.classList.toggle('show-dimensions');
+      measureBtn.classList.toggle('alt-active', on);
+      measureBtn.setAttribute('aria-pressed', String(on));
+      redrawAnnotations();
+    });
+
+    /* ── Materials (exploded only) ───────────────────────── */
+    materialsBtn.addEventListener('click', () => {
+      if (!isExploded) return;
+      const on = viewerShell.classList.toggle('show-materials');
+      materialsBtn.classList.toggle('alt-active', on);
+      materialsBtn.setAttribute('aria-pressed', String(on));
+      redrawAnnotations();
+    });
+
+    /* ── Resize: re-measure spec panel + redraw annotations */
+    window.addEventListener('resize', () => {
+      if (viewerShell.classList.contains('spec-open') && window.matchMedia('(max-width: 980px)').matches) {
+        specPanel.style.maxHeight = specPanel.scrollHeight + 'px';
+      } else if (!window.matchMedia('(max-width: 980px)').matches) {
+        specPanel.style.maxHeight = '';
+      }
+      redrawAnnotations();
+    });
+  </script>
+</body>
+</html>
