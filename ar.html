@@ -1208,6 +1208,20 @@
       viewer.setAttribute('src', `${modelSrc}?reset=${Date.now()}`);
     }
 
+    function enter10FEPresentation() {
+      showPage(pageViewer);
+
+      viewerShell.classList.remove('show-dimensions');
+      viewerShell.classList.remove('show-materials');
+      measureBtn.classList.remove('alt-active');
+      measureBtn.setAttribute('aria-pressed', 'false');
+      materialsBtn.classList.remove('alt-active');
+      materialsBtn.setAttribute('aria-pressed', 'false');
+
+      openSpecPanel();
+      reloadAssembledModel();
+    }
+
     /* ── Master redraw ────────────────────────────────────── */
     function redrawAnnotations() {
       /* ── Dimensions (assembled state only) ── */
@@ -1459,11 +1473,7 @@
     });
 
     open10FE.addEventListener('click', () => {
-      showPage(pageViewer);
-      if (ready) {
-        stageDefaultCamera();
-        redrawAnnotations();
-      }
+      enter10FEPresentation();
     });
 
     breadcrumb.addEventListener('click', (event) => {
@@ -1488,7 +1498,7 @@
       }
 
       if (target === 'pageViewer' && selectedCategory === 'bearing') {
-        showPage(pageViewer);
+        enter10FEPresentation();
       }
     });
 
