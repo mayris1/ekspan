@@ -148,6 +148,8 @@
       letter-spacing: inherit;
       text-transform: inherit;
       color: inherit;
+      -webkit-text-fill-color: currentColor;
+      text-decoration: none;
       cursor: pointer;
     }
 
@@ -405,11 +407,11 @@
     .top-controls {
       position: absolute;
       top: 15px;
-      right: 15px;
+      left: 15px;
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      justify-content: flex-end;
+      justify-content: flex-start;
       opacity: 0;
       transform: translateY(-10px);
       transition: 0.3s ease;
@@ -962,7 +964,7 @@
 
       .top-controls {
         top: 10px;
-        right: 10px;
+        left: 10px;
         gap: 6px;
         max-width: calc(100% - 180px);
       }
@@ -1119,7 +1121,6 @@
         <button class="option-card" type="button" id="open10FE">
           <div class="card-art variant"></div>
           <div class="card-meta">
-            <span class="card-tag">F-Type</span>
             <h2 class="card-title">10FE Fixed</h2>
             <p class="card-text">Opens the current interactive bearing presentation with the specification panel and annotation tools.</p>
             <div class="card-note">Available now</div>
@@ -1129,7 +1130,6 @@
         <div class="option-card disabled" aria-disabled="true">
           <div class="card-art variant"></div>
           <div class="card-meta">
-            <span class="card-tag">F-Type</span>
             <h2 class="card-title">21FE Guide</h2>
             <p class="card-text">Included here as the next F-Type presentation step once the model and specification set are prepared.</p>
             <div class="card-note">Placeholder</div>
@@ -1139,7 +1139,6 @@
         <div class="option-card disabled" aria-disabled="true">
           <div class="card-art variant"></div>
           <div class="card-meta">
-            <span class="card-tag">F-Type</span>
             <h2 class="card-title">31FE Guide</h2>
             <p class="card-text">Included here as the next F-Type presentation step once the model and specification set are prepared.</p>
             <div class="card-note">Placeholder</div>
