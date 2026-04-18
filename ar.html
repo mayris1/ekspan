@@ -110,6 +110,7 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
+      justify-content: space-between;
       gap: 10px;
       margin-bottom: 0;
       padding: 8px 12px;
@@ -118,6 +119,14 @@
       border: 1px solid rgba(28,138,67,0.12);
       box-shadow: 0 10px 24px rgba(16,35,24,0.08);
       backdrop-filter: blur(10px);
+    }
+
+    .breadcrumb-trail {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
     }
 
     .crumb {
@@ -165,6 +174,19 @@
     .crumb.current span {
       color: inherit;
       cursor: default;
+    }
+
+    .breadcrumb-logo {
+      flex: 0 0 auto;
+      width: 92px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .breadcrumb-logo img {
+      display: block;
+      width: 100%;
+      height: auto;
     }
 
     .selection-page {
@@ -771,6 +793,10 @@
         align-items: flex-start;
       }
 
+      .breadcrumb-logo {
+        width: 82px;
+      }
+
       .selection-page {
         min-height: 0;
         padding: 12px 0;
@@ -850,6 +876,10 @@
       .breadcrumb {
         padding: 7px 10px;
         gap: 8px;
+      }
+
+      .breadcrumb-logo {
+        width: 74px;
       }
 
       .crumb {
@@ -1054,7 +1084,12 @@
 
 <body>
   <div class="wrap">
-    <nav class="breadcrumb" id="breadcrumb" aria-label="Progress"></nav>
+    <nav class="breadcrumb" aria-label="Progress">
+      <div class="breadcrumb-trail" id="breadcrumb"></div>
+      <div class="breadcrumb-logo">
+        <img src="https://laserscanning.s3.eu-west-2.amazonaws.com/EKSPAN/EKSPAN_LOGO.png" alt="EKSPAN logo">
+      </div>
+    </nav>
 
     <div class="orientation-lock" id="orientationLock" aria-live="polite">
       <div class="orientation-card">
