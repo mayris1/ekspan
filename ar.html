@@ -3,11 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>EKSPAN 3D Product Example</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.2.0/dist/model-viewer.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
 
     body {
       margin: 0;
@@ -15,14 +23,87 @@
       background:
         radial-gradient(circle at top left, rgba(28,138,67,0.08), transparent 30%),
         linear-gradient(180deg, #f8fbf8, #edf3ee);
-      padding: 24px 15px;
+      padding: 16px 14px;
       color: #18212b;
     }
 
-    .wrap { max-width: 1250px; margin: 0 auto; }
+    .wrap {
+      max-width: 1250px;
+      height: calc(100dvh - 32px);
+      margin: 0 auto;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 12px;
+      overflow: hidden;
+    }
 
     .app-page[hidden] {
       display: none !important;
+    }
+
+    .orientation-lock {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top left, rgba(28,138,67,0.18), transparent 30%),
+        linear-gradient(180deg, rgba(14,22,18,0.96), rgba(18,31,23,0.98));
+      color: white;
+      text-align: center;
+    }
+
+    .orientation-lock.show {
+      display: flex;
+    }
+
+    .orientation-card {
+      max-width: 420px;
+      padding: 26px 24px;
+      border-radius: 24px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 22px 44px rgba(0,0,0,0.24);
+    }
+
+    .orientation-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 18px;
+      border-radius: 20px;
+      border: 2px solid rgba(255,255,255,0.82);
+      position: relative;
+      transform: rotate(90deg);
+    }
+
+    .orientation-icon::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 18px;
+      height: 18px;
+      border-top: 2px solid rgba(255,255,255,0.82);
+      border-right: 2px solid rgba(255,255,255,0.82);
+      transform: translate(-40%, -50%) rotate(45deg);
+    }
+
+    .orientation-card h2 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    .orientation-card p {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.82);
     }
 
     .breadcrumb {
@@ -30,8 +111,8 @@
       flex-wrap: wrap;
       align-items: center;
       gap: 10px;
-      margin-bottom: 18px;
-      padding: 10px 14px;
+      margin-bottom: 0;
+      padding: 8px 12px;
       border-radius: 999px;
       background: rgba(255,255,255,0.86);
       border: 1px solid rgba(28,138,67,0.12);
@@ -85,11 +166,13 @@
     }
 
     .selection-page {
-      min-height: calc(100vh - 48px);
+      min-height: 0;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 18px;
       justify-content: center;
+      overflow: hidden;
     }
 
     .page-head {
@@ -105,7 +188,7 @@
 
     .page-kicker {
       display: inline-block;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       font-size: 12px;
       font-weight: 700;
       letter-spacing: 0.1em;
@@ -114,8 +197,8 @@
     }
 
     .page-title {
-      margin: 0 0 10px;
-      font-size: clamp(32px, 5vw, 52px);
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4.2vw, 48px);
       line-height: 0.95;
       letter-spacing: -0.03em;
     }
@@ -123,8 +206,8 @@
     .page-text {
       margin: 0;
       max-width: 620px;
-      font-size: 16px;
-      line-height: 1.6;
+      font-size: 15px;
+      line-height: 1.45;
       color: #536457;
     }
 
@@ -151,7 +234,10 @@
     .card-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 18px;
+      gap: 14px;
+      min-height: 0;
+      align-content: stretch;
+      grid-auto-rows: minmax(0, 1fr);
     }
 
     .option-card {
@@ -162,8 +248,8 @@
       border-radius: 24px;
       background: rgba(255,255,255,0.9);
       box-shadow: 0 18px 36px rgba(16,35,24,0.09);
-      min-height: 280px;
-      padding: 22px;
+      min-height: 0;
+      padding: 18px;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
@@ -240,6 +326,8 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      justify-content: flex-start;
+      min-height: 100%;
     }
 
     .card-tag {
@@ -258,21 +346,22 @@
 
     .card-title {
       margin: 0;
-      font-size: 28px;
+      font-size: 24px;
       line-height: 1;
       letter-spacing: -0.03em;
     }
 
     .card-text {
       margin: 0;
-      font-size: 14px;
-      line-height: 1.5;
+      font-size: 13px;
+      line-height: 1.4;
       color: #536457;
-      max-width: 32ch;
+      max-width: 34ch;
+      text-wrap: balance;
     }
 
     .card-note {
-      margin-top: 2px;
+      margin-top: auto;
       font-size: 12px;
       font-weight: 700;
       color: #1c8a43;
@@ -283,8 +372,8 @@
       position: relative;
       display: grid;
       grid-template-columns: minmax(0, 1fr) 0;
-      height: min(78vh, 760px);
-      min-height: 540px;
+      height: 100%;
+      min-height: 0;
       border-radius: 20px;
       overflow: hidden;
       background: rgba(255,255,255,0.92);
@@ -681,12 +770,8 @@
       }
 
       .selection-page {
-        min-height: auto;
+        min-height: 0;
         padding: 12px 0;
-      }
-
-      .card-grid {
-        grid-template-columns: 1fr;
       }
 
       .page-head {
@@ -697,7 +782,7 @@
       .viewer-shell,
       .viewer-shell.spec-open {
         grid-template-columns: 1fr;
-        height: auto;
+        height: 100%;
         min-height: 0;
       }
 
@@ -737,12 +822,245 @@
         line-height: 1.25;
       }
     }
+
+    @media (max-width: 980px) and (orientation: portrait) {
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 980px) and (orientation: landscape) {
+      .card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-height: 560px) and (orientation: landscape) {
+      body {
+        padding: 10px;
+      }
+
+      .wrap {
+        height: calc(100dvh - 20px);
+        gap: 8px;
+      }
+
+      .breadcrumb {
+        padding: 7px 10px;
+        gap: 8px;
+      }
+
+      .crumb {
+        font-size: 11px;
+      }
+
+      .selection-page {
+        gap: 12px;
+        justify-content: flex-start;
+      }
+
+      .page-head {
+        gap: 10px;
+        flex-direction: row;
+        align-items: flex-start;
+      }
+
+      .page-kicker {
+        margin-bottom: 6px;
+        font-size: 10px;
+      }
+
+      .page-title {
+        margin-bottom: 6px;
+        font-size: clamp(24px, 3vw, 34px);
+      }
+
+      .page-text {
+        font-size: 13px;
+        line-height: 1.3;
+        max-width: 56ch;
+      }
+
+      .nav-btn {
+        padding: 9px 13px;
+        font-size: 12px;
+      }
+
+      .card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .option-card {
+        border-radius: 18px;
+        padding: 12px 14px;
+        justify-content: flex-end;
+      }
+
+      .card-meta {
+        gap: 6px;
+        justify-content: flex-end;
+      }
+
+      .card-tag {
+        padding: 5px 8px;
+        font-size: 10px;
+      }
+
+      .card-title {
+        font-size: 17px;
+        line-height: 1.05;
+      }
+
+      .card-text {
+        font-size: 11px;
+        line-height: 1.18;
+        max-width: 100%;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .card-note {
+        font-size: 11px;
+      }
+
+      .viewer-shell {
+        border-radius: 16px;
+      }
+
+      .viewer-shell {
+        grid-template-columns: minmax(0, 1fr) 0;
+      }
+
+      .viewer-shell.spec-open {
+        grid-template-columns: minmax(0, 1fr) 260px;
+      }
+
+      .viewer-panel {
+        min-height: 0;
+      }
+
+      .spec-panel {
+        width: 0;
+        border-left: none;
+        border-top: none;
+        max-height: none;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateX(12px);
+      }
+
+      .viewer-shell.spec-open .spec-panel {
+        width: auto;
+        border-left: 1px solid rgba(28,138,67,0.12);
+        opacity: 1;
+        overflow: auto;
+        transform: translateX(0);
+      }
+
+      .top-controls {
+        top: 10px;
+        right: 10px;
+        gap: 6px;
+        max-width: calc(100% - 180px);
+      }
+
+      .bottom-left-controls {
+        left: 10px;
+        top: auto;
+        bottom: 10px;
+        flex-direction: row;
+        gap: 6px;
+      }
+
+      .bottom-right-controls {
+        right: 10px;
+        top: auto;
+        bottom: 52px;
+      }
+
+      .control-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .bearing-badge {
+        top: 10px;
+        left: 10px;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+
+      .viewer-logo {
+        width: 74px;
+        right: 10px;
+        bottom: 10px;
+      }
+
+      .loading-pill {
+        bottom: 14px;
+        padding: 8px 12px;
+        font-size: 11px;
+      }
+
+      .spec-inner {
+        padding: 16px 14px 14px;
+      }
+
+      .spec-header {
+        margin-bottom: 10px;
+      }
+
+      .spec-kicker {
+        margin-bottom: 6px;
+        font-size: 10px;
+      }
+
+      .spec-header h3 {
+        margin-bottom: 6px;
+        font-size: 20px;
+      }
+
+      .spec-header p,
+      .spec-table,
+      .spec-note {
+        font-size: 11px;
+        line-height: 1.25;
+      }
+
+      .spec-table th,
+      .spec-table td {
+        padding: 6px 0;
+      }
+
+      .annotation-label {
+        max-width: 108px;
+        font-size: 9px;
+        padding: 4px 7px;
+      }
+    }
+
+    @media (orientation: portrait) and (max-width: 1024px) {
+      .orientation-lock.show {
+        display: flex;
+      }
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
     <nav class="breadcrumb" id="breadcrumb" aria-label="Progress"></nav>
+
+    <div class="orientation-lock" id="orientationLock" aria-live="polite">
+      <div class="orientation-card">
+        <div class="orientation-icon" aria-hidden="true"></div>
+        <h2>Rotate To Landscape</h2>
+        <p>This presentation is designed for iPhone and tablet use in landscape mode. Rotate your device to continue.</p>
+      </div>
+    </div>
 
     <section class="app-page selection-page" id="pageCategory">
       <div class="page-head">
@@ -973,6 +1291,7 @@
     const pageVariants = document.getElementById('pageVariants');
     const pageViewer = document.getElementById('pageViewer');
     const breadcrumb = document.getElementById('breadcrumb');
+    const orientationLock = document.getElementById('orientationLock');
     const familiesGrid = document.getElementById('familiesGrid');
     const familiesKicker = document.getElementById('familiesKicker');
     const familiesTitle = document.getElementById('familiesTitle');
@@ -990,10 +1309,10 @@
         title: 'Choose a bearing family.',
         text: 'Select a family to continue into the current presentation structure.',
         items: [
-          { title: 'F-Type', text: 'Includes the fixed and guided F-Type bearings. This path currently opens the 10FE presentation.', status: 'Available', action: 'variants' },
-          { title: 'Gosport Link Bearings', text: 'Shown here as part of the bearing range structure for later expansion.', status: 'Placeholder' },
-          { title: 'Pot', text: 'Shown here as part of the bearing range structure for later expansion.', status: 'Placeholder' },
-          { title: 'Spherical', text: 'Shown here as part of the bearing range structure for later expansion.', status: 'Placeholder' }
+          { title: 'F-Type', text: 'Fixed and guided F-Type bearings. Opens the 10FE presentation.', status: 'Available', action: 'variants' },
+          { title: 'Gosport Link Bearings', text: 'Placeholder for the Gosport Link range.', status: 'Placeholder' },
+          { title: 'Pot', text: 'Placeholder for the Pot bearing range.', status: 'Placeholder' },
+          { title: 'Spherical', text: 'Placeholder for the Spherical bearing range.', status: 'Placeholder' }
         ]
       },
       joint: {
@@ -1001,9 +1320,9 @@
         title: 'Choose a joint family.',
         text: 'The joint route is included for presentation structure and can be populated with real options next.',
         items: [
-          { title: 'Joint Option 01', text: 'Placeholder route for the joint product range.', status: 'Placeholder' },
-          { title: 'Joint Option 02', text: 'Placeholder route for the joint product range.', status: 'Placeholder' },
-          { title: 'Joint Option 03', text: 'Placeholder route for the joint product range.', status: 'Placeholder' }
+          { title: 'Joint Option 01', text: 'Placeholder for the joint product range.', status: 'Placeholder' },
+          { title: 'Joint Option 02', text: 'Placeholder for the joint product range.', status: 'Placeholder' },
+          { title: 'Joint Option 03', text: 'Placeholder for the joint product range.', status: 'Placeholder' }
         ]
       }
     };
@@ -1044,7 +1363,8 @@
       });
       currentPageId = pageToShow.id;
       renderBreadcrumb(currentPageId);
-      window.scrollTo(0, 0);
+      updateOrientationGate();
+      requestLandscapeLock();
     }
 
     function renderFamilyCards(category) {
@@ -1056,7 +1376,6 @@
         <button class="option-card${item.action ? '' : ' disabled'}" type="button" ${item.action ? `data-family-action="${item.action}"` : 'disabled'}>
           <div class="card-art family"></div>
           <div class="card-meta">
-            <span class="card-tag">${category === 'bearing' ? 'Bearing Family' : 'Joint Family'}</span>
             <h2 class="card-title">${item.title}</h2>
             <p class="card-text">${item.text}</p>
             <div class="card-note">${item.status}</div>
@@ -1066,6 +1385,7 @@
     }
 
     renderBreadcrumb(currentPageId);
+    updateOrientationGate();
 
     /* ── Element refs ─────────────────────────────────────── */
     const viewer      = document.getElementById('viewer');
@@ -1091,6 +1411,28 @@
     function stageDefaultCamera() {
       viewer.cameraTarget = '0m 0.015m 0m';
       viewer.jumpCameraToGoal();
+    }
+
+    function isMobileLikeViewport() {
+      return window.matchMedia('(max-width: 1024px)').matches;
+    }
+
+    function isPortraitViewport() {
+      return window.matchMedia('(orientation: portrait)').matches;
+    }
+
+    async function requestLandscapeLock() {
+      if (!screen.orientation || typeof screen.orientation.lock !== 'function') return;
+      try {
+        await screen.orientation.lock('landscape');
+      } catch (error) {
+        // Safari on iPhone and some browsers ignore orientation locking.
+      }
+    }
+
+    function updateOrientationGate() {
+      const shouldShow = isMobileLikeViewport() && isPortraitViewport();
+      orientationLock.classList.toggle('show', shouldShow);
     }
 
     /* ── Hotspot screen-position helper ───────────────────── */
@@ -1443,6 +1785,12 @@
     // Fallback if load fires before listener
     window.addEventListener('load', () => {
       setTimeout(() => { if (!ready) init(); }, 1200);
+    });
+
+    window.addEventListener('resize', updateOrientationGate);
+    window.addEventListener('orientationchange', () => {
+      updateOrientationGate();
+      requestLandscapeLock();
     });
 
     /* Redraw annotations every time the camera moves */
