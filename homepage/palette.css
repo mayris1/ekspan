@@ -1,0 +1,29 @@
+/* Shared colour roles for the isolated EKSPAN redesign prototype. */
+:root{
+ --ek-brand:#05986f;
+ --ek-green:#007452;
+ --ek-mint:#7cdbb0;
+ --ek-ink:#19221d;
+ --ek-forest:#192b22;
+ --ek-muted:#536157;
+ --ek-paper:#f3f4ee;
+ --ek-surface:#e3e9df;
+ --ek-line:#c9d1c8;
+ --ek-line-strong:#8ba18f;
+ --ek-white:#ffffff;
+ --green:var(--ek-brand);--ink:var(--ek-ink);--paper:var(--ek-paper);--line:var(--ek-line);
+}
+/* Accessible foreground pairs, consistent across page families. */
+body{background:var(--ek-paper);color:var(--ek-ink)}
+em,.text-link:hover{color:var(--ek-green)}
+.hero em,.bearing-discovery em,.viewer-section em,.people em{color:var(--ek-mint)}
+.enquiry,.page-cta{background:var(--ek-green);color:var(--ek-white)}
+.enquiry h2 span{color:var(--ek-white)}
+.button.dark,.cta{background:var(--ek-ink);color:var(--ek-white)}
+.button.light{background:var(--ek-paper);color:var(--ek-ink)}
+.button:hover,.cta:hover{background:var(--ek-green);color:var(--ek-white)}
+.enquiry .button:hover,.page-cta .button:hover,.enquiry .cta:hover{background:var(--ek-paper);color:var(--ek-ink)}
+.site-header a:hover,.site-header summary:hover{color:var(--ek-mint)}
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--ek-green);outline-offset:5px}
+.site-header :focus-visible,.bearing-discovery :focus-visible,.viewer-section :focus-visible,.enquiry :focus-visible{outline-color:var(--ek-mint)}
+::selection{background:var(--ek-green);color:var(--ek-white)}
